@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2002-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.security.ProtectionDomain;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -278,12 +282,18 @@ public final class CachedIntrospectionResults {
 			}
 			this.propertyDescriptors = new LinkedHashMap<>();
 
+			Set<String> readMethodNames = new HashSet<>();
+
 			// This call is slow so we do it once.
 			PropertyDescriptor[] pds = this.beanInfo.getPropertyDescriptors();
 			for (PropertyDescriptor pd : pds) {
-				if (Class.class == beanClass &&
-						("classLoader".equals(pd.getName()) ||  "protectionDomain".equals(pd.getName()))) {
-					// Ignore Class.getClassLoader() and getProtectionDomain() methods - nobody needs to bind to those
+				if (Class.class == beanClass && (!"name".equals(pd.getName()) && !pd.getName().endsWith("Name"))) {
+					// Only allow all name variants of Class properties
+					continue;
+				}
+				if (pd.getPropertyType() != null && (ClassLoader.class.isAssignableFrom(pd.getPropertyType())
+						|| ProtectionDomain.class.isAssignableFrom(pd.getPropertyType()))) {
+					// Ignore ClassLoader and ProtectionDomain types - nobody needs to bind to those
 					continue;
 				}
 				if (logger.isTraceEnabled()) {
@@ -294,15 +304,24 @@ public final class CachedIntrospectionResults {
 				}
 				pd = buildGenericTypeAwarePropertyDescriptor(beanClass, pd);
 				this.propertyDescriptors.put(pd.getName(), pd);
+				Method readMethod = pd.getReadMethod();
+				if (readMethod != null) {
+					readMethodNames.add(readMethod.getName());
+				}
 			}
 
 			// Explicitly check implemented interfaces for setter/getter methods as well,
 			// in particular for Java 8 default methods...
 			Class<?> currClass = beanClass;
 			while (currClass != null && currClass != Object.class) {
-				introspectInterfaces(beanClass, currClass);
+				introspectInterfaces(beanClass, currClass, readMethodNames);
 				currClass = currClass.getSuperclass();
 			}
+
+			// Check for record-style accessors without prefix: e.g. "lastName()"
+			// - accessor method directly referring to instance field of same name
+			// - same convention for component accessors of Java 15 record classes
+			introspectPlainAccessors(beanClass, readMethodNames);
 
 			this.typeDescriptorCache = new ConcurrentReferenceHashMap<>();
 		}
@@ -311,7 +330,9 @@ public final class CachedIntrospectionResults {
 		}
 	}
 
-	private void introspectInterfaces(Class<?> beanClass, Class<?> currClass) throws IntrospectionException {
+	private void introspectInterfaces(Class<?> beanClass, Class<?> currClass, Set<String> readMethodNames)
+			throws IntrospectionException {
+
 		for (Class<?> ifc : currClass.getInterfaces()) {
 			if (!ClassUtils.isJavaLanguageInterface(ifc)) {
 				for (PropertyDescriptor pd : getBeanInfo(ifc).getPropertyDescriptors()) {
@@ -321,11 +342,48 @@ public final class CachedIntrospectionResults {
 						// GenericTypeAwarePropertyDescriptor leniently resolves a set* write method
 						// against a declared read method, so we prefer read method descriptors here.
 						pd = buildGenericTypeAwarePropertyDescriptor(beanClass, pd);
+						if (pd.getPropertyType() != null && (ClassLoader.class.isAssignableFrom(pd.getPropertyType())
+								|| ProtectionDomain.class.isAssignableFrom(pd.getPropertyType()))) {
+							// Ignore ClassLoader and ProtectionDomain types - nobody needs to bind to those
+							continue;
+						}
 						this.propertyDescriptors.put(pd.getName(), pd);
+						Method readMethod = pd.getReadMethod();
+						if (readMethod != null) {
+							readMethodNames.add(readMethod.getName());
+						}
 					}
 				}
-				introspectInterfaces(ifc, ifc);
+				introspectInterfaces(ifc, ifc, readMethodNames);
 			}
+		}
+	}
+
+	private void introspectPlainAccessors(Class<?> beanClass, Set<String> readMethodNames)
+			throws IntrospectionException {
+
+		for (Method method : beanClass.getMethods()) {
+			if (!this.propertyDescriptors.containsKey(method.getName()) &&
+					!readMethodNames.contains((method.getName())) && isPlainAccessor(method)) {
+				this.propertyDescriptors.put(method.getName(),
+						new GenericTypeAwarePropertyDescriptor(beanClass, method.getName(), method, null, null));
+				readMethodNames.add(method.getName());
+			}
+		}
+	}
+
+	private boolean isPlainAccessor(Method method) {
+		if (method.getParameterCount() > 0 || method.getReturnType() == void.class ||
+				method.getDeclaringClass() == Object.class || Modifier.isStatic(method.getModifiers())) {
+			return false;
+		}
+		try {
+			// Accessor method referring to instance field of same name?
+			method.getDeclaringClass().getDeclaredField(method.getName());
+			return true;
+		}
+		catch (Exception ex) {
+			return false;
 		}
 	}
 

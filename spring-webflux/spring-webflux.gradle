@@ -12,32 +12,32 @@ dependencies {
 	compile(project(":spring-core"))
 	compile(project(":spring-web"))
 	compile("io.projectreactor:reactor-core")
-	optional(project(":spring-context"))
-	optional(project(":spring-context-support"))  // for FreeMarker support
-	optional("javax.servlet:javax.servlet-api:3.1.0")
-	optional("javax.websocket:javax.websocket-api:1.1")
-	optional("org.webjars:webjars-locator-core:0.35")
-	optional("org.freemarker:freemarker:${freemarkerVersion}")
-	optional("com.fasterxml.jackson.core:jackson-databind:${jackson2Version}")
-	optional("com.fasterxml.jackson.dataformat:jackson-dataformat-smile:${jackson2Version}")
-	optional("io.reactivex:rxjava:${rxjavaVersion}")
-	optional("io.reactivex:rxjava-reactive-streams:${rxjavaAdapterVersion}")
-	optional("io.projectreactor.ipc:reactor-netty")
-	optional("org.apache.tomcat:tomcat-websocket:${tomcatVersion}") {
+	compileOnly(project(":spring-context"))
+	compileOnly(project(":spring-context-support"))  // for FreeMarker support
+	compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+	compileOnly("javax.websocket:javax.websocket-api:1.1")
+	compileOnly("org.webjars:webjars-locator-core:0.35")
+	compileOnly("org.freemarker:freemarker:${freemarkerVersion}")
+	compileOnly("com.fasterxml.jackson.core:jackson-databind:${jackson2Version}")
+	compileOnly("com.fasterxml.jackson.dataformat:jackson-dataformat-smile:${jackson2Version}")
+	compileOnly("io.reactivex:rxjava:${rxjavaVersion}")
+	compileOnly("io.reactivex:rxjava-reactive-streams:${rxjavaAdapterVersion}")
+	compileOnly("io.projectreactor.ipc:reactor-netty")
+	compileOnly("org.apache.tomcat:tomcat-websocket:${tomcatVersion}") {
 		exclude group: "org.apache.tomcat", module: "tomcat-websocket-api"
 		exclude group: "org.apache.tomcat", module: "tomcat-servlet-api"
 	}
-	optional("org.eclipse.jetty.websocket:websocket-server:${jettyVersion}") {
+	compileOnly("org.eclipse.jetty.websocket:websocket-server:${jettyVersion}") {
 		exclude group: "javax.servlet", module: "javax.servlet"
 	}
-	optional("io.undertow:undertow-websockets-jsr:${undertowVersion}") {
+	compileOnly("io.undertow:undertow-websockets-jsr:${undertowVersion}") {
 		exclude group: "org.jboss.spec.javax.websocket", module: "jboss-websocket-api_1.1_spec"
 	}
-	optional("org.apache.httpcomponents:httpclient:4.5.5") {
+	compileOnly("org.apache.httpcomponents:httpclient:4.5.5") {
 		exclude group: "commons-logging", module: "commons-logging"
 	}
-	optional("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-	optional("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
+	compileOnly("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
 	testCompile("javax.xml.bind:jaxb-api:2.3.0")
 	testCompile("com.fasterxml:aalto-xml:1.0.0")
 	testCompile("org.hibernate:hibernate-validator:6.0.10.Final")

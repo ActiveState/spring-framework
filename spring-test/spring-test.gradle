@@ -9,49 +9,49 @@ dependencyManagement {
 
 dependencies {
 	compile(project(":spring-core"))
-	optional(project(":spring-aop"))
-	optional(project(":spring-beans"))
-	optional(project(":spring-context"))
-	optional(project(":spring-jdbc"))
-	optional(project(":spring-orm"))
-	optional(project(":spring-tx"))
-	optional(project(":spring-web"))
-	optional(project(":spring-webflux"))
-	optional(project(":spring-webmvc"))
-	optional(project(":spring-websocket"))
-	optional("javax.activation:activation:1.1.1")
-	optional("javax.el:javax.el-api:3.0.1-b04")
-	optional("javax.inject:javax.inject:1")
-	optional("javax.servlet:javax.servlet-api:4.0.1")
-	optional("javax.servlet.jsp:javax.servlet.jsp-api:2.3.2-b02")
-	optional("javax.servlet.jsp.jstl:javax.servlet.jsp.jstl-api:1.2.1")
-	optional("javax.xml.bind:jaxb-api:2.3.0")
-	optional("javax.websocket:javax.websocket-api:1.1")
-	optional("junit:junit:4.12")
-	optional("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-	optional("org.testng:testng:6.14.3")
-	optional("org.aspectj:aspectjweaver:${aspectjVersion}")
-	optional("org.codehaus.groovy:groovy-all:${groovyVersion}")
-	optional("org.hamcrest:hamcrest-core:1.3")
-	optional("org.apache.taglibs:taglibs-standard-jstlel:1.2.5") {
+	compileOnly(project(":spring-aop"))
+	compileOnly(project(":spring-beans"))
+	compileOnly(project(":spring-context"))
+	compileOnly(project(":spring-jdbc"))
+	compileOnly(project(":spring-orm"))
+	compileOnly(project(":spring-tx"))
+	compileOnly(project(":spring-web"))
+	compileOnly(project(":spring-webflux"))
+	compileOnly(project(":spring-webmvc"))
+	compileOnly(project(":spring-websocket"))
+	compileOnly("javax.activation:activation:1.1.1")
+	compileOnly("javax.el:javax.el-api:3.0.1-b04")
+	compileOnly("javax.inject:javax.inject:1")
+	compileOnly("javax.servlet:javax.servlet-api:4.0.1")
+	compileOnly("javax.servlet.jsp:javax.servlet.jsp-api:2.3.2-b02")
+	compileOnly("javax.servlet.jsp.jstl:javax.servlet.jsp.jstl-api:1.2.1")
+	compileOnly("javax.xml.bind:jaxb-api:2.3.0")
+	compileOnly("javax.websocket:javax.websocket-api:1.1")
+	compileOnly("junit:junit:4.12")
+	compileOnly("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+	compileOnly("org.testng:testng:6.14.3")
+	compileOnly("org.aspectj:aspectjweaver:${aspectjVersion}")
+	compileOnly("org.codehaus.groovy:groovy-all:${groovyVersion}")
+	compileOnly("org.hamcrest:hamcrest-core:1.3")
+	compileOnly("org.apache.taglibs:taglibs-standard-jstlel:1.2.5") {
 		exclude group: "org.apache.taglibs", module: "taglibs-standard-spec"
 	}
-	optional("net.sourceforge.htmlunit:htmlunit:2.31") {
+	compileOnly("net.sourceforge.htmlunit:htmlunit:2.31") {
 		exclude group: "commons-logging", module: "commons-logging"
 	}
-	optional("org.seleniumhq.selenium:htmlunit-driver:2.31.0") {
+	compileOnly("org.seleniumhq.selenium:htmlunit-driver:2.31.0") {
 		exclude group: "commons-logging", module: "commons-logging"
 	}
-	optional("org.seleniumhq.selenium:selenium-java:3.13.0") {
+	compileOnly("org.seleniumhq.selenium:selenium-java:3.13.0") {
 		exclude group: "commons-logging", module: "commons-logging"
 		exclude group: "io.netty", module: "netty"
 	}
-	optional("org.xmlunit:xmlunit-matchers:2.5.1")
-	optional("org.skyscreamer:jsonassert:1.5.0")
-	optional("com.jayway.jsonpath:json-path:2.4.0")
-	optional("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-	optional("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
-	optional("io.projectreactor:reactor-test")
+	compileOnly("org.xmlunit:xmlunit-matchers:2.5.1")
+	compileOnly("org.skyscreamer:jsonassert:1.5.0")
+	compileOnly("com.jayway.jsonpath:json-path:2.4.0")
+	compileOnly("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}")
+	compileOnly("io.projectreactor:reactor-test")
 	testCompile(project(":spring-context-support"))
 	testCompile(project(":spring-oxm"))
 	testCompile("javax.annotation:javax.annotation-api:1.3.2")

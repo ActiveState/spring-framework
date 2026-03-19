@@ -1,9 +1,10 @@
 buildscript {
 	repositories {
+		mavenCentral()
 		maven { url "https://repo.spring.io/plugins-release" }
 	}
 	dependencies {
-		classpath("io.spring.gradle:propdeps-plugin:0.0.9.RELEASE")
+		//classpath("io.spring.gradle:propdeps-plugin:0.0.9.RELEASE")
 		classpath("org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.16")
 	}
 }
@@ -60,10 +61,15 @@ configure(allprojects) { project ->
 	apply plugin: "java"
 	apply plugin: "kotlin"
 	apply plugin: "checkstyle"
-	apply plugin: "propdeps"
+	//apply plugin: "propdeps"
 	apply plugin: "test-source-set-dependencies"
 	apply plugin: "io.spring.dependency-management"
-	apply from: "${gradleScriptDir}/ide.gradle"
+	apply plugin: "eclipse"
+	apply plugin: "idea"
+	//apply from: "${gradleScriptDir}/ide.gradle"
+
+	configurations { provided; optional }
+	configurations.compileOnly.extendsFrom(configurations.provided, configurations.optional)
 
 	dependencyManagement {
 		resolutionStrategy {
@@ -148,8 +154,8 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
-		maven { url "https://repo.spring.io/libs-release" }
-		mavenLocal()
+		mavenCentral()
+		maven { url "https://repo.spring.io/release" }
 	}
 
 	dependencies {
@@ -197,7 +203,7 @@ configure(allprojects) { project ->
 }
 
 configure(subprojects - project(":spring-build-src")) { subproject ->
-	apply from: "${gradleScriptDir}/publish-maven.gradle"
+	//apply from: "${gradleScriptDir}/publish-maven.gradle"
 
 	jar {
 		manifest.attributes["Implementation-Title"] = subproject.name

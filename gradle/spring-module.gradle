@@ -1,3 +1,4 @@
+apply plugin: "maven-publish"
 apply plugin: 'org.springframework.build.compile'
 apply plugin: 'org.springframework.build.optional-dependencies'
 apply from: "$rootDir/gradle/publications.gradle"

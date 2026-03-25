@@ -1,11 +1,10 @@
 buildscript {
 	repositories {
-		maven { url "https://repo.spring.io/plugins-release" }
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
 	}
 	dependencies {
-		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.2")
-		classpath("io.spring.gradle:docbook-reference-plugin:0.3.1")
 		classpath("ws.antonov.gradle.plugins:gradle-plugin-protobuf:0.9.1")
 	}
 }
@@ -83,7 +82,7 @@ configure(allprojects) { project ->
 
 	ext.gradleScriptDir = "${rootProject.projectDir}/gradle"
 
-	apply plugin: "propdeps"
+	//apply plugin: "propdeps"
 	apply plugin: "java"
 	apply plugin: "test-source-set-dependencies"
 	apply from: "${gradleScriptDir}/ide.gradle"
@@ -91,7 +90,11 @@ configure(allprojects) { project ->
 	configurations {
 		sniffer
 		javaApiSignature
+		provided
+		optional
 	}
+
+	configurations.compile.extendsFrom(configurations.provided, configurations.optional)
 
 	compileJava.options*.compilerArgs = [
 		"-Xlint:serial", "-Xlint:varargs", "-Xlint:cast", "-Xlint:classfile",
@@ -133,7 +136,7 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
-		maven { url "https://repo.spring.io/libs-release" }
+		maven { url "https://repo.maven.apache.org/maven2" }
 	}
 
 	dependencies {
@@ -1148,7 +1151,7 @@ configure(rootProject) {
 	description = "Spring Framework"
 
 	apply plugin: "org.asciidoctor.convert"
-	apply plugin: "docbook-reference"
+	//apply plugin: "docbook-reference"
 	apply plugin: "groovy"
 
 	// apply plugin: "detect-split-packages"
@@ -1160,13 +1163,6 @@ configure(rootProject) {
 		backends = ['docbook']
 		options doctype: 'book', eruby: 'erubis'
 		attributes 'spring-version': project.version, 'revnumber': project.version, 'docinfo': ""
-	}
-
-	reference {
-		sourceDir = asciidoctor.outputDir
-		pdfFilename = "spring-framework-reference.pdf"
-		epubFilename = "spring-framework-reference.epub"
-		expandPlaceholders = ""
 	}
 
 	afterEvaluate {
@@ -1257,9 +1253,9 @@ configure(rootProject) {
 			into "javadoc-api"
 		}
 
-		from (reference) {
-			into "spring-framework-reference"
-		}
+		//from (reference) {
+		//	into "spring-framework-reference"
+		//}
 	}
 
 	task schemaZip(type: Zip) {

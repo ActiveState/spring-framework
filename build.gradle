@@ -1,11 +1,12 @@
 buildscript {
 	repositories {
-		maven { url "https://repo.spring.io/plugins-release" }
+		mavenCentral()
+		maven { url "https://plugins.gradle.org/m2/" }
 	}
 	dependencies {
-		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
+		//classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.2")
-		classpath("io.spring.gradle:docbook-reference-plugin:0.3.1")
+		//classpath("io.spring.gradle:docbook-reference-plugin:0.3.1")
 		classpath("ws.antonov.gradle.plugins:gradle-plugin-protobuf:0.9.1")
 	}
 }
@@ -83,7 +84,7 @@ configure(allprojects) { project ->
 
 	ext.gradleScriptDir = "${rootProject.projectDir}/gradle"
 
-	apply plugin: "propdeps"
+	//apply plugin: "propdeps"
 	apply plugin: "java"
 	apply plugin: "test-source-set-dependencies"
 	apply from: "${gradleScriptDir}/ide.gradle"
@@ -91,7 +92,12 @@ configure(allprojects) { project ->
 	configurations {
 		sniffer
 		javaApiSignature
+		provided
+		optional
 	}
+
+	sourceSets.main.compileClasspath += configurations.provided + configurations.optional
+	sourceSets.test.compileClasspath += configurations.provided + configurations.optional
 
 	compileJava.options*.compilerArgs = [
 		"-Xlint:serial", "-Xlint:varargs", "-Xlint:cast", "-Xlint:classfile",
@@ -133,7 +139,7 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
-		maven { url "https://repo.spring.io/libs-release" }
+		maven { url "https://repo.maven.apache.org/maven2" }
 	}
 
 	dependencies {
@@ -1146,27 +1152,9 @@ sonarqube {
 configure(rootProject) {
 	description = "Spring Framework"
 
-	apply plugin: "org.asciidoctor.convert"
-	apply plugin: "docbook-reference"
 	apply plugin: "groovy"
 
-	// apply plugin: "detect-split-packages"
 	apply from: "${gradleScriptDir}/jdiff.gradle"
-
-	asciidoctor {
-		sourceDir project.file('src/asciidoc')
-		separateOutputDirs = false
-		backends = ['docbook']
-		options doctype: 'book', eruby: 'erubis'
-		attributes 'spring-version': project.version, 'revnumber': project.version, 'docinfo': ""
-	}
-
-	reference {
-		sourceDir = asciidoctor.outputDir
-		pdfFilename = "spring-framework-reference.pdf"
-		epubFilename = "spring-framework-reference.epub"
-		expandPlaceholders = ""
-	}
 
 	afterEvaluate {
 		tasks.findAll { it.name.startsWith("reference") }.each{ it.dependsOn.add("asciidoctor") }
@@ -1241,26 +1229,6 @@ configure(rootProject) {
 		}
 	}
 
-	task docsZip(type: Zip, dependsOn: 'reference') {
-		group = "Distribution"
-		baseName = "spring-framework"
-		classifier = "docs"
-		description = "Builds -${classifier} archive containing api and reference " +
-			"for deployment at http://static.springframework.org/spring-framework/docs."
-
-		from("src/dist") {
-			include "changelog.txt"
-		}
-
-		from (api) {
-			into "javadoc-api"
-		}
-
-		from (reference) {
-			into "spring-framework-reference"
-		}
-	}
-
 	task schemaZip(type: Zip) {
 		group = "Distribution"
 		baseName = "spring-framework"
@@ -1289,81 +1257,11 @@ configure(rootProject) {
 		}
 	}
 
-	task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
-		group = "Distribution"
-		baseName = "spring-framework"
-		classifier = "dist"
-		description = "Builds -${classifier} archive, containing all jars and docs, " +
-			"suitable for community download page."
-
-		ext.baseDir = "${baseName}-${project.version}";
-
-		from("src/dist") {
-			include "readme.txt"
-			include "license.txt"
-			include "notice.txt"
-			into "${baseDir}"
-			expand(copyright: new Date().format("yyyy"), version: project.version)
-		}
-
-		from(zipTree(docsZip.archivePath)) {
-			into "${baseDir}/docs"
-		}
-
-		from(zipTree(schemaZip.archivePath)) {
-			into "${baseDir}/schema"
-		}
-
-		moduleProjects.each { subproject ->
-			into ("${baseDir}/libs") {
-				from subproject.jar
-				if (subproject.tasks.findByPath("sourcesJar")) {
-					from subproject.sourcesJar
-				}
-				if (subproject.tasks.findByPath("javadocJar")) {
-					from subproject.javadocJar
-				}
-			}
-		}
-	}
-
 	// Create a distribution that contains all dependencies (required and optional).
 	// Not published by default; only for use when building from source.
-	task depsZip(type: Zip, dependsOn: distZip) { zipTask ->
-		group = "Distribution"
-		baseName = "spring-framework"
-		classifier = "dist-with-deps"
-		description = "Builds -${classifier} archive, containing everything " +
-			"in the -${distZip.classifier} archive plus all runtime dependencies."
 
-		from zipTree(distZip.archivePath)
 
-		gradle.taskGraph.whenReady { taskGraph ->
-			if (taskGraph.hasTask(":${zipTask.name}")) {
-				def projectNames = rootProject.subprojects*.name
-				def artifacts = new HashSet()
-				subprojects.each { subproject ->
-					(subproject.configurations.runtime.resolvedConfiguration.resolvedArtifacts +
-					subproject.configurations.optional.resolvedConfiguration.resolvedArtifacts).each { artifact ->
-						def dependency = artifact.moduleVersion.id
-						if (!projectNames.contains(dependency.name)) {
-							artifacts << artifact.file
-						}
-					}
-				}
-
-				zipTask.from(artifacts) {
-					into "${distZip.baseDir}/deps"
-				}
-			}
-		}
-	}
-
-	artifacts {
-		archives docsZip
-		archives schemaZip
-		archives distZip
-	}
+	artifacts {}
 
 	task wrapper(type: Wrapper) {
 		description = "Generates gradlew[.bat] scripts"
